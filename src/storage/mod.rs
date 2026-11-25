@@ -1,2 +1,3 @@
-// Expose the page module
+// Expose different modules
+pub mod file;
 pub mod page;
