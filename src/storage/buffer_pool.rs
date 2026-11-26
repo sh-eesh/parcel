@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::storage::file::FileManager;
-use crate::storage::page::Page;
+use crate::storage::page::{PAGE_SIZE, Page};
 
 // Manage database pages cached in RAM
 pub struct BufferPool {
@@ -91,5 +91,32 @@ impl BufferPool {
         }
 
         Ok(())
+    }
+
+    // Create a new page and add it to the buffer pool
+    pub fn new_page(&mut self) -> std::io::Result<u64> {
+        // Get the current database file size
+        let file_size = self.storage.file_size()?;
+
+        // Calculate how many pages already exist on disk
+        let disk_page_count = file_size / PAGE_SIZE as u64;
+
+        // Account for pages created in RAM but not yet saved
+        let cached_next_id = self.pages.keys().max().map_or(0, |id| id + 1);
+
+        // Determine the next available page ID
+        let page_id = disk_page_count.max(cached_next_id);
+
+        // Create an empty page
+        let page = Page::new();
+
+        // Store the page in the buffer pool
+        self.pages.insert(page_id, page);
+
+        // Mark the new page as dirty
+        self.dirty_pages.insert(page_id);
+
+        // Return the new page ID
+        Ok(page_id)
     }
 }

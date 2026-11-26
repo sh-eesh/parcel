@@ -43,4 +43,11 @@ impl FileManager {
 
         Ok(page)
     }
+
+    // Read the current database file size in bytes
+    pub fn file_size(&self) -> std::io::Result<u64> {
+        let metadata = self.file.metadata()?;
+
+        Ok(metadata.len())
+    }
 }
