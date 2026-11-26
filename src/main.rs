@@ -1,4 +1,3 @@
-// Import the storage components.
 use parcel::storage::buffer_pool::BufferPool;
 use parcel::storage::file::FileManager;
 
