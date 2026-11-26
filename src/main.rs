@@ -1,32 +1,30 @@
-// Import the database and storage components.
-use parcel::Database;
+// Import the storage components.
 use parcel::storage::buffer_pool::BufferPool;
 use parcel::storage::file::FileManager;
 
 fn main() -> std::io::Result<()> {
-    // Initialize the Parcel database.
-    let db = Database::new(String::from("Parcel"));
-
     // Open the database file
     let storage = FileManager::open("parcel.db")?;
 
-    // Create a buffer pool connected to the database file
+    // Create a buffer pool
     let mut buffer_pool = BufferPool::new(storage);
 
-    // Retrieve Page 0 from the buffer pool
+    // Retrieve Page 0 and modify its first byte also print its value
     let page = buffer_pool.get_page_mut(0)?;
-
-    println!("{} database engine", db.name());
-    println!("Page size: {} bytes", page.data.len());
-    println!("Stored value: {}", page.data[0]);
-
-    // Change the page value in RAM
     page.data[0] = 12;
 
-    // Request Page 0 again
-    let page = buffer_pool.get_page(0)?;
+    println!("Page 0 value in RAM {}", page.data[0]);
 
-    println!("Retrieved Page 0 again: {}", page.data[0]);
+    // Save the modified page to disk
+    buffer_pool.flush_page(0)?;
+
+    // Open the database file again.
+    let mut storage = FileManager::open("parcel.db")?;
+
+    // Read Page 0 directly from disk.
+    let disk_page = storage.read_page(0)?;
+
+    println!("Page 0 value on SSD: {}", disk_page.data[0]);
 
     Ok(())
 }
