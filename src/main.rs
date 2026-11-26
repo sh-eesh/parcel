@@ -1,32 +1,32 @@
-// Import the database and storage components
+// Import the database and storage components.
 use parcel::Database;
+use parcel::storage::buffer_pool::BufferPool;
 use parcel::storage::file::FileManager;
-use parcel::storage::page::Page;
 
 fn main() -> std::io::Result<()> {
-    // Initialize the Parcel database
+    // Initialize the Parcel database.
     let db = Database::new(String::from("Parcel"));
 
-    // Create a new empty page
-    let mut page = Page::new();
+    // Open the database file
+    let storage = FileManager::open("parcel.db")?;
 
-    // Store a test value in the first byte
-    page.data[0] = 42;
-    page.data[1] = 69;
+    // Create a buffer pool connected to the database file
+    let mut buffer_pool = BufferPool::new(storage);
 
-    // Open or create the database file
-    let mut storage = FileManager::open("parcel.db")?;
-
-    // Save the page as Page 0
-    storage.write_page(0, &page)?;
-
-    // Read Page 0 back from the database file
-    let loaded_page = storage.read_page(0)?;
+    // Retrieve Page 0 from the buffer pool
+    let page = buffer_pool.get_page_mut(0)?;
 
     println!("{} database engine", db.name());
-    println!("Page size: {} bytes", loaded_page.data.len());
-    println!("Stored value: {}", loaded_page.data[0]);
-    println!("Stored value: {}", loaded_page.data[1]);
+    println!("Page size: {} bytes", page.data.len());
+    println!("Stored value: {}", page.data[0]);
+
+    // Change the page value in RAM
+    page.data[0] = 12;
+
+    // Request Page 0 again
+    let page = buffer_pool.get_page(0)?;
+
+    println!("Retrieved Page 0 again: {}", page.data[0]);
 
     Ok(())
 }

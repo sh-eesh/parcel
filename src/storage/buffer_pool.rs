@@ -35,4 +35,19 @@ impl BufferPool {
         // Return a reference to the cached page
         Ok(self.pages.get(&page_id).unwrap())
     }
+
+    // Retrieve a mutable page from RAM or load it from disk
+    pub fn get_page_mut(&mut self, page_id: u64) -> std::io::Result<&mut Page> {
+        // Check whether the page is already cached
+        if !self.pages.contains_key(&page_id) {
+            // Load the page from the database file
+            let page = self.storage.read_page(page_id)?;
+
+            // Store the loaded page in the RAM cache
+            self.pages.insert(page_id, page);
+        }
+
+        // Return a mutable reference to the cached page
+        Ok(self.pages.get_mut(&page_id).unwrap())
+    }
 }
