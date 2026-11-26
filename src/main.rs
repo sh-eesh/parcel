@@ -18,10 +18,10 @@ fn main() -> std::io::Result<()> {
     // Save the modified page to disk
     buffer_pool.flush_page(0)?;
 
-    // Open the database file again.
+    // Open the database file again
     let mut storage = FileManager::open("parcel.db")?;
 
-    // Read Page 0 directly from disk.
+    // Read Page 0 directly from disk
     let disk_page = storage.read_page(0)?;
 
     println!("Page 0 value on SSD: {}", disk_page.data[0]);
